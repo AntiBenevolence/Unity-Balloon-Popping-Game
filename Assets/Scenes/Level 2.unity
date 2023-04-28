@@ -1262,7 +1262,7 @@ Animator:
   m_GameObject: {fileID: 895121298}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: c41965f0af2784a2d938b0e12a47b9c8, type: 2}
+  m_Controller: {fileID: 9100000, guid: 2f10fe7765368fe4eb7283d444aab727, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -2116,21 +2116,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 54c75409c422146658618dd24fe3f728, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  movementLR: 0
-  movementUD: 0
-  moveFactorLR: 1
-  moveFactorUD: 1
+  balloonScale: {x: 0, y: 0}
+  rb: {fileID: 0}
+  balloon: {fileID: 1838768752}
+  audioPop: {fileID: 1838768758}
+  scorekeeper: {fileID: 0}
+  playerSprite: {fileID: 0}
+  horizontalMovement: 0
+  verticalMovement: 0
+  horizontalSpeed: 1
+  verticalSpeed: 1
   speed: 2
   isFacingRight: 1
   directionDown: 1
   level: 0
   animator: {fileID: 1838768754}
-  theScale: {x: 0, y: 0}
-  rigid: {fileID: 0}
-  balloon: {fileID: 1838768752}
-  audioPop: {fileID: 1838768758}
-  scorekeeper: {fileID: 0}
-  player: {fileID: 895121298}
   leftBound: -14.5
   rightBound: 14.5
   upBound: 5

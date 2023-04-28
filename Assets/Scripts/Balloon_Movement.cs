@@ -6,26 +6,51 @@ using UnityEngine.SceneManagement;
 
 public class Balloon_Movement : MonoBehaviour
 {
-    
-    [SerializeField] float movementLR;
-    [SerializeField] float movementUD;
-    [SerializeField] float moveFactorLR = 1.0f;
-    [SerializeField] float moveFactorUD = 1.0f;
-    [SerializeField] int speed = 2;
-    [SerializeField] bool isFacingRight = true;
-    [SerializeField] bool directionDown = true;
-    [SerializeField] int level;
-    [SerializeField] Animator animator;
 
-
-    [SerializeField] Vector2 theScale;
-    [SerializeField] Rigidbody2D rigid;
+    #region Player Unity Objects
+    [SerializeField] Vector2 balloonScale;
+    [SerializeField] Rigidbody2D rb;
     [SerializeField] GameObject balloon;
     [SerializeField] AudioSource audioPop;
     [SerializeField] GameObject scorekeeper;
-    [SerializeField] GameObject player;
+    [SerializeField] GameObject playerSprite;
 
-    //Hardcoded boundaries for Camera in Game
+    #endregion
+
+
+
+
+
+    #region Movement Variables
+    // Balloon X-Axis value
+    [SerializeField] private float horizontalMovement;
+
+    // Balloon Y-Axis value
+    [SerializeField] private float verticalMovement;
+
+    // Ballon horizontal speed
+    [SerializeField] private float horizontalSpeed = 1.0f;
+
+    // Ballon vertical speed
+    [SerializeField] private float verticalSpeed = 1.0f;
+    [SerializeField] private int speed = 2;
+
+    # endregion
+    
+
+    #region Boolean Variables
+    [SerializeField] private bool isFacingRight = true;
+    [SerializeField] private bool directionDown = true;
+
+    #endregion
+    
+
+
+    [SerializeField] int level;
+    [SerializeField] Animator animator;
+
+   
+    #region Hardcoded boundaries for Camera in Game
     [SerializeField] float leftBound = -14.5f;
     [SerializeField] float rightBound = 14.5f;
     [SerializeField] float upBound = 5.0f;
@@ -37,17 +62,31 @@ public class Balloon_Movement : MonoBehaviour
     [SerializeField] float maxForce = 5.0f;
     [SerializeField] int fleeDistance = 15;
 
+    #endregion
+
+
+     // Awake is called before the start of application
+    void Awake()
+    {
+        //scale ballon size
+        balloonScale = transform.localScale;
+
+        //Level Setter 
+        level = SceneManager.GetActiveScene().buildIndex;
+
+        // Reference to player's rigidBody 2D
+        rb = GetComponent<Rigidbody2D>();
+
+        //Player Object
+        playerSprite = GameObject.FindGameObjectWithTag("Player");
+       
+    }
+    
+
     // Start is called before the first frame update
     void Start()
     {
-        theScale = transform.localScale;
-        level = SceneManager.GetActiveScene().buildIndex;
-        if (player == null)
-        {
-            player = GameObject.FindGameObjectWithTag("Player");
-        }
-        if (rigid == null)
-            rigid = GetComponent<Rigidbody2D>();
+       
         if (balloon == null)
             balloon = GameObject.FindGameObjectWithTag("Balloon");
         if (audioPop == null)
@@ -79,8 +118,8 @@ public class Balloon_Movement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        movementLR = moveFactorLR;
-        movementUD = moveFactorUD;
+        verticalMovement = horizontalSpeed;
+        horizontalMovement = verticalSpeed;
         if (level == 1)
         {
             speed = 7;
@@ -121,8 +160,8 @@ public class Balloon_Movement : MonoBehaviour
 
     void EasyMovement()
     {
-        rigid.velocity = new Vector2(movementLR * speed, rigid.velocity.y);
-        if (movementLR < 0 && isFacingRight || movementLR > 0 && !isFacingRight)
+        rb.velocity = new Vector2(verticalMovement * speed, rb.velocity.y);
+        if (verticalMovement < 0 && isFacingRight || verticalMovement > 0 && !isFacingRight)
             Flip();
         Movement();
 
@@ -130,7 +169,7 @@ public class Balloon_Movement : MonoBehaviour
 
     void CheckSize()
     {
-        if (theScale.x >= 1.0f)
+        if (balloonScale.x >= 1.0f)
         {
             Destroy(gameObject);
             scorekeeper.GetComponent<Scorekeeper>().ZeroScore();
@@ -148,7 +187,7 @@ public class Balloon_Movement : MonoBehaviour
     {
         if((transform.position.x <= leftBound && !isFacingRight) || (transform.position.x >= rightBound && isFacingRight))
         {
-            moveFactorLR = -moveFactorLR;
+            horizontalSpeed = -horizontalSpeed;
             VerticalMovement();
         }
         
@@ -175,17 +214,17 @@ public class Balloon_Movement : MonoBehaviour
 
     void FleeingMovement()
     {
-        if (Vector3.Distance(transform.position, player.transform.position) < fleeDistance)
+        if (Vector3.Distance(transform.position, playerSprite.transform.position) < fleeDistance)
         {
             
-            desiredVelocity = (transform.position - player.transform.position).normalized;
+            desiredVelocity = (transform.position - playerSprite.transform.position).normalized;
             desiredVelocity *= maxVelocity;
 
-            currentVelocity = rigid.velocity;
+            currentVelocity = rb.velocity;
             steeringVelocity = (desiredVelocity - currentVelocity);
             steeringVelocity = Vector3.ClampMagnitude(steeringVelocity, maxForce);
 
-            steeringVelocity /= rigid.mass;
+            steeringVelocity /= rb.mass;
 
             currentVelocity += steeringVelocity;
             currentVelocity = Vector3.ClampMagnitude(currentVelocity, maxVelocity);
@@ -199,23 +238,23 @@ public class Balloon_Movement : MonoBehaviour
     //The balloon will reverse 
     void VerticalMovement()
     {
-        if (transform.position.y + moveFactorUD > upBound && !directionDown)
+        if (transform.position.y + verticalSpeed > upBound && !directionDown)
         {
             transform.position = new Vector2(transform.position.x, upBound);
             directionDown = !directionDown;
         }
-        else if (transform.position.y - moveFactorUD < downBound && directionDown)
+        else if (transform.position.y - verticalSpeed < downBound && directionDown)
         {
             transform.position = new Vector2(transform.position.x, downBound);
             directionDown = !directionDown;
         }
-        else if (transform.position.y - moveFactorUD >= downBound && directionDown)
+        else if (transform.position.y - verticalSpeed >= downBound && directionDown)
         {
-            transform.position = new Vector2(transform.position.x, transform.position.y - moveFactorUD);
+            transform.position = new Vector2(transform.position.x, transform.position.y - verticalSpeed);
         }
-        else if (transform.position.y + moveFactorUD <= upBound && !directionDown)
+        else if (transform.position.y + verticalSpeed <= upBound && !directionDown)
         {
-            transform.position = new Vector2(transform.position.x, transform.position.y + moveFactorUD);
+            transform.position = new Vector2(transform.position.x, transform.position.y + verticalSpeed);
         }
 
     }
@@ -252,16 +291,16 @@ public class Balloon_Movement : MonoBehaviour
 
     public void RecordScore()
     {
-        int tempScore = (int)((theScale.x-.6f) * 500.0f);
+        int tempScore = (int)((balloonScale.x-.6f) * 500.0f);
         scorekeeper.GetComponent<Scorekeeper>().UpdateScore(tempScore);
     }
 
 
     public void GrowBalloon()
     {
-        theScale.x += .01f;
-        theScale.y += .01f;
-        transform.localScale = theScale;
+        balloonScale.x += .01f;
+        balloonScale.y += .01f;
+        transform.localScale = balloonScale;
     }
 
 }
