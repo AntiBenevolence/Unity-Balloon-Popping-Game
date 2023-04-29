@@ -15,14 +15,11 @@ public class ButtonFunctions : MonoBehaviour
     void Awake()
     {
         level = SceneManager.GetActiveScene().buildIndex;
-        if (pauseButton == null)
-        {
-            pauseButton = GameObject.FindGameObjectWithTag("PauseButton");
-        }
-        if (resumeButton == null)
-        {
-            resumeButton = GameObject.FindGameObjectWithTag("ResumeButton");
-        }
+       
+        pauseButton = GameObject.FindGameObjectWithTag("PauseButton");
+    
+        resumeButton = GameObject.FindGameObjectWithTag("ResumeButton");
+        
         if (level == 1 || level == 2 || level == 3)
         {
             pauseButton.SetActive(true);

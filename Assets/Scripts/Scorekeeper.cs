@@ -36,21 +36,21 @@ public class Scorekeeper : MonoBehaviour
     {
         if(levelNum == 1)
         {
-            directions = "Slow Balloon. Shoot with Fireball";
+            directions = "Easy Mode. Shoot Balloon";
         }
         else if (levelNum == 2)
         {
-            directions = "Faster Balloon with vertical movement. Shoot with Fireball";
+            directions = "Medium Mode. Shoot Balloon";
         }
         else if (levelNum == 3)
         {
-            directions = "Balloon will flee from you. Shoot with Fireball";
+            directions = "Hard Mode. Shoot Balloon";
         }
         directionsText.text = "Directions: " + directions;
     }
     public void DisplayName()
     {
-        nameText.text = "Go get 'em " + PersistentData.Instance.GetName();
+        nameText.text = "Player: " + PersistentData.Instance.GetName();
     }
     public void DisplayScore()
     {
