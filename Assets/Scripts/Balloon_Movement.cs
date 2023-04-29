@@ -77,8 +77,20 @@ public class Balloon_Movement : MonoBehaviour
         // Reference to player's rigidBody 2D
         rb = GetComponent<Rigidbody2D>();
 
-        //Player Object
+        //Player object
         playerSprite = GameObject.FindGameObjectWithTag("Player");
+
+        //Ballon object
+        balloon = GameObject.FindGameObjectWithTag("Balloon");
+
+        //Ballon pop audio
+        audioPop = balloon.GetComponent<AudioSource>();
+
+        //Scoreborad Object
+        scorekeeper = GameObject.FindGameObjectWithTag("ScoreBoard");
+
+        //Bolloon Object
+        animator = GetComponent<Animator>();
        
     }
     
@@ -86,18 +98,8 @@ public class Balloon_Movement : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-       
-        if (balloon == null)
-            balloon = GameObject.FindGameObjectWithTag("Balloon");
-        if (audioPop == null)
-            audioPop = balloon.GetComponent<AudioSource>();
         speed = 4;
-        if (scorekeeper == null)
-            scorekeeper = GameObject.FindGameObjectWithTag("ScoreBoard");
-        if(animator == null)
-        {
-            animator = GetComponent<Animator>();
-        }
+
         if (level == 1)
         {
             InvokeRepeating("GrowBalloon", 1.0f, .1f);
@@ -109,9 +111,7 @@ public class Balloon_Movement : MonoBehaviour
 
         if (level == 3)
         {
-
             InvokeRepeating("GrowBalloon", 3.0f, .25f);
-           
         }
     }
 
@@ -120,6 +120,7 @@ public class Balloon_Movement : MonoBehaviour
     {
         verticalMovement = horizontalSpeed;
         horizontalMovement = verticalSpeed;
+        
         if (level == 1)
         {
             speed = 7;
@@ -128,7 +129,7 @@ public class Balloon_Movement : MonoBehaviour
         {
             speed = 12;
         }
-        else if (level  == 3)
+        else if (level == 3)
         {
             speed = 5;
         }
@@ -140,79 +141,89 @@ public class Balloon_Movement : MonoBehaviour
 
         if (level == 1)
         {
-            EasyMovement();
+            EasyMovement(verticalMovement);
             CheckSize();
         }
         else if (level == 2)
         {
-            EasyMovement();
-            VerticalMovement();
+            EasyMovement(verticalMovement);
+            mediumMovement();
             CheckSize();
         }
         else if (level == 3)
         {
-            FleeingMovement();
+            hardMovement();
             checkBoundsOnHard();
             CheckSize();
         }
 
     }
 
-    void EasyMovement()
-    {
-        rb.velocity = new Vector2(verticalMovement * speed, rb.velocity.y);
-        if (verticalMovement < 0 && isFacingRight || verticalMovement > 0 && !isFacingRight)
-            Flip();
-        Movement();
-
-    }
-
-    void CheckSize()
-    {
-        if (balloonScale.x >= 1.0f)
-        {
-            Destroy(gameObject);
-            scorekeeper.GetComponent<Scorekeeper>().ZeroScore();
-            SceneManager.LoadScene("Level " + level);
-
-        }
-    }
-
-    void Flip()
+    void flip()
     {
         transform.Rotate(0, 180, 0);
         isFacingRight = !isFacingRight;
     }
-    void Movement()
+
+
+      void Movement()
     {
         if((transform.position.x <= leftBound && !isFacingRight) || (transform.position.x >= rightBound && isFacingRight))
         {
             horizontalSpeed = -horizontalSpeed;
-            VerticalMovement();
-        }
-        
-    }
-    void checkBoundsOnHard()
-    {
-        if (transform.position.x <= leftBound - 1.0f)
-        {
-            transform.position = new Vector2(rightBound + .2f, transform.position.y);
-        }
-        else if (transform.position.x >= rightBound + 1.0f)
-        {
-            transform.position = new Vector2(leftBound - .2f, transform.position.y);
-        }
-        else if (transform.position.y >= upBound + 1.0f)
-        {
-            transform.position = new Vector2(transform.position.x, downBound - .2f);
-        }
-        else if (transform.position.y <= downBound - 1.0f)
-        {
-            transform.position = new Vector2(transform.position.x, upBound + .2f);
+            mediumMovement();
         }
     }
 
-    void FleeingMovement()
+
+
+    void EasyMovement(float verticalDir)
+    {
+        rb.velocity = new Vector2(verticalDir * speed, rb.velocity.y);
+        
+       
+        //Facing direction for booloon sprite
+      
+        if(verticalDir < 0 && isFacingRight)
+        {
+            flip();
+        }
+       
+       
+        else if (verticalDir > 0 && !isFacingRight)
+        {
+            flip();
+        }
+       
+        Movement();
+    }
+
+    //This method will control balloon vertical movement. Once balloon reaches edge, it will move up/down 1.0 unit
+    //The balloon will reverse 
+    void mediumMovement()
+    {
+        if (transform.position.y + verticalSpeed > upBound && !directionDown)
+        {
+            transform.position = new Vector2(transform.position.x, upBound);
+            directionDown = !directionDown;
+        }
+        else if (transform.position.y - verticalSpeed < downBound && directionDown)
+        {
+            transform.position = new Vector2(transform.position.x, downBound);
+            directionDown = !directionDown;
+        }
+        else if (transform.position.y - verticalSpeed >= downBound && directionDown)
+        {
+            transform.position = new Vector2(transform.position.x, transform.position.y - verticalSpeed);
+        }
+        else if (transform.position.y + verticalSpeed <= upBound && !directionDown)
+        {
+            transform.position = new Vector2(transform.position.x, transform.position.y + verticalSpeed);
+        }
+    }
+
+    //Fleeing Movement
+    void hardMovement()
     {
         if (Vector3.Distance(transform.position, playerSprite.transform.position) < fleeDistance)
         {
@@ -234,30 +245,25 @@ public class Balloon_Movement : MonoBehaviour
         }
     }
 
-    //This method will control balloon vertical movement. Once balloon reaches edge, it will move up/down 1.0 unit
-    //The balloon will reverse 
-    void VerticalMovement()
-    {
-        if (transform.position.y + verticalSpeed > upBound && !directionDown)
-        {
-            transform.position = new Vector2(transform.position.x, upBound);
-            directionDown = !directionDown;
-        }
-        else if (transform.position.y - verticalSpeed < downBound && directionDown)
-        {
-            transform.position = new Vector2(transform.position.x, downBound);
-            directionDown = !directionDown;
-        }
-        else if (transform.position.y - verticalSpeed >= downBound && directionDown)
-        {
-            transform.position = new Vector2(transform.position.x, transform.position.y - verticalSpeed);
-        }
-        else if (transform.position.y + verticalSpeed <= upBound && !directionDown)
-        {
-            transform.position = new Vector2(transform.position.x, transform.position.y + verticalSpeed);
-        }
 
+    void CheckSize()
+    {
+        if (balloonScale.x >= 1.0f)
+        {
+            Destroy(gameObject);
+            scorekeeper.GetComponent<Scorekeeper>().ZeroScore();
+            SceneManager.LoadScene("Level " + level);
+        }
     }
+
+    public void GrowBalloon()
+    {
+        balloonScale.x += .01f;
+        balloonScale.y += .01f;
+        transform.localScale = balloonScale;
+    }
+
+    
     public void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.tag == "Fire")
@@ -296,11 +302,26 @@ public class Balloon_Movement : MonoBehaviour
     }
 
 
-    public void GrowBalloon()
+    
+
+     void checkBoundsOnHard()
     {
-        balloonScale.x += .01f;
-        balloonScale.y += .01f;
-        transform.localScale = balloonScale;
+        if (transform.position.x <= leftBound - 1.0f)
+        {
+            transform.position = new Vector2(rightBound + .2f, transform.position.y);
+        }
+        else if (transform.position.x >= rightBound + 1.0f)
+        {
+            transform.position = new Vector2(leftBound - .2f, transform.position.y);
+        }
+        else if (transform.position.y >= upBound + 1.0f)
+        {
+            transform.position = new Vector2(transform.position.x, downBound - .2f);
+        }
+        else if (transform.position.y <= downBound - 1.0f)
+        {
+            transform.position = new Vector2(transform.position.x, upBound + .2f);
+        }
     }
 
 }
